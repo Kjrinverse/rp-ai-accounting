@@ -69,9 +69,9 @@ def load_default_coa():
 def root():
     return {"message": "Accounting API Running"}
 
-@app.get("/accounts", response_model=List[Account])
+@app.get("/accounts")
 def get_accounts():
-    return accounts
+    return [a.dict() for a in accounts]
 
 @app.post("/accounts", response_model=Account)
 def add_account(account: Account):

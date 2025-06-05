@@ -46,7 +46,7 @@ try:
     accounts = requests.get(f"{API_BASE}/accounts").json()
     journals = requests.get(f"{API_BASE}/journals").json()
 
-    if isinstance(accounts, dict):
+if isinstance(accounts, dict):
         accounts = [accounts]  # Ensure it's a list
 
     df_acc = pd.DataFrame(accounts)
@@ -67,7 +67,7 @@ except Exception as e:
     st.stop()
 
 
-    if isinstance(accounts, dict):
+if isinstance(accounts, dict):
     accounts = [accounts]
 
 st.write("✅ df_acc columns:", df_acc.columns.tolist())

@@ -391,7 +391,7 @@ elif section == "📘 Manual Journal Entry":
 elif section == "🧠 AI Journal Assistant":
     st.header("🧠 AI Journal Assistant")
     
-if "gpt_entry" not in st.session_state:
+    if "gpt_entry" not in st.session_state:
     st.session_state["gpt_entry"] = None
 
     from openai import OpenAI
@@ -463,16 +463,16 @@ if "gpt_entry" not in st.session_state:
                 st.exception(e)
 
 
-    parsed = st.session_state.gpt_entry
-    if parsed:
-        st.subheader("💡 GPT Suggested Entry")
-        st.markdown(f"📅 **Date**: `{parsed['date']}`")
-        st.markdown(f"📝 **Description**: `{parsed['description']}`")
-        st.markdown(f"💳 **Debit**: `{parsed['debit_account_code']}`")
-        st.markdown(f"💰 **Credit**: `{parsed['credit_account_code']}`")
-        st.markdown(f"💵 **Amount**: `${parsed['amount']:,.2f}`")
+        parsed = st.session_state.gpt_entry
+        if parsed:
+            st.subheader("💡 GPT Suggested Entry")
+            st.markdown(f"📅 **Date**: `{parsed['date']}`")
+            st.markdown(f"📝 **Description**: `{parsed['description']}`")
+            st.markdown(f"💳 **Debit**: `{parsed['debit_account_code']}`")
+            st.markdown(f"💰 **Credit**: `{parsed['credit_account_code']}`")
+            st.markdown(f"💵 **Amount**: `${parsed['amount']:,.2f}`")
 
-        with st.form("post_gpt_entry_form"):
+            with st.form("post_gpt_entry_form"):
             submit_gpt = st.form_submit_button("✅ Post Suggested Entry")
             if submit_gpt:
                 journals = [

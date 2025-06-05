@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 import openai
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 import plotly.express as px
 
 # --- SIMPLE PASSWORD LOGIN ---
@@ -25,7 +26,6 @@ st.set_page_config(page_title="RP AI Accounting Module", layout="wide")
 st.title("📊 RP AI Accounting Module")
 
 API_BASE = "https://rp-ai-accounting.onrender.com"
-openai.api_key = "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"  # Replace with your actual key
 
 section = st.sidebar.radio("Navigation", [
     "🧠 AI Journal Assistant","📄 Invoices", "💸 Expenses", "📒 Chart of Accounts",

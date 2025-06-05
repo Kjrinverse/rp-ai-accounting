@@ -226,12 +226,36 @@ elif section == "📊 Balance Sheet":
 
 # ========================= 📘 General Ledger ============================
 elif section == "📘 General Ledger":
-    st.header("📘 General Ledger")
-    for acct in df_acc["code"]:
-        gl = merged[merged["account_code"] == acct]
-        if not gl.empty:
-            st.subheader(f"{acct} - {gl['name'].iloc[0]}")
-            st.dataframe(gl[["date", "description", "debit", "credit", "reference"]])
+    st.subheader("📘 General Ledger")
+
+    try:
+        # Fetch journal entries from backend
+        journals = requests.get(f"{API_BASE}/journals").json()
+
+        # Ensure it's a list
+        if isinstance(journals, dict):
+            journals = [journals]
+
+        # Create DataFrame
+        df_journal = pd.DataFrame(journals)
+
+        # Display if there is data
+        if not df_journal.empty:
+            df_journal["date"] = pd.to_datetime(df_journal["date"])
+            df_journal.sort_values("date", inplace=True)
+
+            # Optional formatting
+            df_journal["debit"] = df_journal["debit"].astype(float)
+            df_journal["credit"] = df_journal["credit"].astype(float)
+
+            st.dataframe(df_journal, use_container_width=True)
+
+        else:
+            st.info("No journal entries found.")
+
+    except Exception as e:
+        st.error("❌ Failed to load journal entries.")
+        st.exception(e)
 
 # ========================= 📉 Net Income Trend ============================
 elif section == "📝 Manual Journal Test":

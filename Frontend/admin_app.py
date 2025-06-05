@@ -58,9 +58,6 @@ try:
         "account_type": "type"
     }, inplace=True)
 
-    st.write("✅ df_acc columns:", df_acc.columns.tolist())
-    st.write("✅ df_acc preview:", df_acc.head())
-
 except Exception as e:
     st.error("❌ Failed to load data from backend.")
     st.exception(e)
@@ -70,8 +67,6 @@ except Exception as e:
     if isinstance(accounts, dict):
         accounts = [accounts]
 
-st.write("✅ df_acc columns:", df_acc.columns.tolist())
-st.write("✅ df_acc preview:", df_acc.head())
 
 df_acc = pd.DataFrame(accounts)
 df_acc["label"] = df_acc["code"] + " - " + df_acc["name"]

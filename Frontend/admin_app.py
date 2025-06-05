@@ -401,6 +401,11 @@ elif section == "🧠 AI Journal Assistant":
 
     prompt = st.text_area("📝 Describe the transaction (e.g., 'Paid $500 for office rent in June')")
 
+    coa_preview = df_acc[["code", "name", "type"]].to_string(index=False)
+
+    if st.button("💡 Generate Journal Entry"):
+        ...
+    
     if st.button("💡 Generate Journal Entry"):
         with st.spinner("Asking GPT..."):
             try:

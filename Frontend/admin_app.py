@@ -517,14 +517,6 @@ elif section == "🧠 AI Journal Assistant":
                     "credit": 0,
                     "reference": "AI-MANUAL"
                 },
-                {
-                    "date": str(j_date),
-                    "account_code": credit_code,
-                    "description": j_desc,
-                    "debit": 0,
-                    "credit": j_amt,
-                    "reference": "AI-MANUAL"
-                }
             ]
             for j in journals:
                 st.write("📤 Posting payload:", j)

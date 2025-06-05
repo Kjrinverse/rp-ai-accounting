@@ -249,7 +249,7 @@ elif section == "📘 General Ledger":
             df_journal["credit"] = df_journal["credit"].astype(float)
 
             account_filter = st.selectbox("Filter by Account Code", options=["All"] + df_journal["account_code"].unique().tolist())
-            if account_filter != "All":
+        if account_filter != "All":
             df_journal = df_journal[df_journal["account_code"] == account_filter]
             
             st.dataframe(df_journal, use_container_width=True)

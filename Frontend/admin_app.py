@@ -414,6 +414,7 @@ if "gpt_entry" not in st.session_state:
                 )
                 st.write("🧠 Full GPT Response:", response)
                 suggestion = response.choices[0].message.content.strip("` \n")
+                st.write("✅ Attempting to parse:", suggestion)
                 parsed = json.loads(suggestion)
 
                 st.subheader("📑 GPT Suggested Entry")

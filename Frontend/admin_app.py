@@ -392,7 +392,7 @@ elif section == "🧠 AI Journal Assistant":
     st.header("🧠 AI Journal Assistant")
     
     if "gpt_entry" not in st.session_state:
-    st.session_state["gpt_entry"] = None
+        st.session_state["gpt_entry"] = None
 
     from openai import OpenAI
     import json

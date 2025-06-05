@@ -56,12 +56,19 @@ except Exception as e:
 if isinstance(accounts, dict):
     accounts = [accounts]
 
+st.write("✅ df_acc columns:", df_acc.columns.tolist())
+st.write("✅ df_acc preview:", df_acc.head())
+
 df_acc = pd.DataFrame(accounts)
 df_acc["label"] = df_acc["code"] + " - " + df_acc["name"]
 if journals:
     df_journal = pd.DataFrame(journals)
 else:
     df_journal = pd.DataFrame(columns=["date", "account_code", "description", "debit", "credit", "reference"])
+
+# Rename columns if needed
+expected_cols = {"account_code": "code", "account_name": "name", "account_type": "type"}
+df_acc.rename(columns={k: v for k, v in expected_cols.items() if k in df_acc.columns}, inplace=True)
 
 # Safe date handling
 if "date" in df_journal.columns:

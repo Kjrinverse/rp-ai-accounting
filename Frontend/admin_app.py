@@ -426,32 +426,6 @@ elif section == "🧠 AI Journal Assistant":
                 
                 st.subheader("📑 GPT Suggested Entry")
                 st.json(parsed)
-   
-
-                if st.button("✅ Post Suggested Entry"):
-                    journals = [
-                        {
-                            "date": parsed["date"],
-                            "account_code": parsed["debit_account_code"],
-                            "description": parsed["description"],
-                            "debit": parsed["amount"],
-                            "credit": 0,
-                            "reference": parsed["reference"]
-                        },
-                        {
-                            "date": parsed["date"],
-                            "account_code": parsed["credit_account_code"],
-                            "description": parsed["description"],
-                            "debit": 0,
-                            "credit": parsed["amount"],
-                            "reference": parsed["reference"]
-                        }
-                    ]
-                    for j in journals:
-                        r = requests.post(f"{API_BASE}/journals", json=[j])
-                        st.write("📤 POST:", j)
-                        st.write("🔍 Response:", r.status_code, r.text)
-                    st.success("✅ Entry posted to General Ledger")
 
             except Exception as e:
                 st.error("❌ GPT failed")

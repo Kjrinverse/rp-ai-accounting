@@ -68,7 +68,7 @@ except Exception as e:
 
 
     if isinstance(accounts, dict):
-    accounts = [accounts]
+        accounts = [accounts]
 
 st.write("✅ df_acc columns:", df_acc.columns.tolist())
 st.write("✅ df_acc preview:", df_acc.head())

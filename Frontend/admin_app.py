@@ -417,7 +417,7 @@ elif section == "🧠 AI Journal Assistant":
 
                 parsed = json.loads(suggestion)
                 try:
-                    parsed = json.loads(suggestion)
+                    st.session_state["gpt_entry"] = parsed
                 except json.JSONDecodeError as e:
                     st.error("❌ GPT response is not valid JSON")
                     st.write("🚫 Error:", e)
@@ -432,41 +432,35 @@ elif section == "🧠 AI Journal Assistant":
                 st.exception(e)
 
 
-        parsed = st.session_state.gpt_entry
-        if parsed:
-            st.subheader("💡 GPT Suggested Entry")
-            st.markdown(f"📅 **Date**: `{parsed['date']}`")
-            st.markdown(f"📝 **Description**: `{parsed['description']}`")
-            st.markdown(f"💳 **Debit**: `{parsed['debit_account_code']}`")
-            st.markdown(f"💰 **Credit**: `{parsed['credit_account_code']}`")
-            st.markdown(f"💵 **Amount**: `${parsed['amount']:,.2f}`")
+       parsed = st.session_state.get("gpt_entry")
+if parsed:
+    with st.form("post_gpt_entry_form"):
+        submit_gpt = st.form_submit_button("✅ Post Suggested Entry")
+        if submit_gpt:
+            journals = [
+                {
+                    "date": parsed["date"],
+                    "account_code": str(parsed["debit_account_code"]),
+                    "description": parsed["description"],
+                    "debit": parsed["amount"],
+                    "credit": 0,
+                    "reference": parsed["reference"]
+                },
+                {
+                    "date": parsed["date"],
+                    "account_code": str(parsed["credit_account_code"]),
+                    "description": parsed["description"],
+                    "debit": 0,
+                    "credit": parsed["amount"],
+                    "reference": parsed["reference"]
+                }
+            ]
+            for j in journals:
+                r = requests.post(f"{API_BASE}/journals", json=[j])
+                st.write("📤 POST:", j)
+                st.write("🔍 Response:", r.status_code, r.text)
+            st.success("✅ GPT journal entry posted.")
 
-        with st.form("post_gpt_entry_form"):
-            submit_gpt = st.form_submit_button("✅ Post Suggested Entry")
-            if submit_gpt:
-                journals = [
-                    {
-                        "date": parsed["date"],
-                        "account_code": str(parsed["debit_account_code"]),
-                        "description": parsed["description"],
-                        "debit": parsed["amount"],
-                        "credit": 0,
-                        "reference": "AI-GPT"
-                    },
-                    {
-                        "date": parsed["date"],
-                        "account_code": str(parsed["credit_account_code"]),
-                        "description": parsed["description"],
-                        "debit": 0,
-                        "credit": parsed["amount"],
-                        "reference": "AI-GPT"
-                    }
-                ]
-                for j in journals:
-                    st.write("📤 Posting payload:", j)
-                    r = requests.post(f"{API_BASE}/journals", json=[j])
-                    st.write("🔍 POST response:", r.status_code, r.text)
-                st.success("✅ GPT journal entry posted.")
 
     st.markdown("---")
     st.subheader("📝 Manual Journal Entry (Always Available)")

@@ -191,7 +191,7 @@ elif section == "📒 Chart of Accounts":
     st.dataframe(df_acc)
 
 # ========================= 📈 Income Statement ============================
-lif section == "📈 Income Statement":
+elif section == "📈 Income Statement":
     st.header("📈 Income Statement")
 
     # Merge if not done already

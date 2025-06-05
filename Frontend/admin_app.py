@@ -193,21 +193,46 @@ elif section == "📒 Chart of Accounts":
 # ========================= 📈 Income Statement ============================
 elif section == "📈 Income Statement":
     st.header("📈 Income Statement")
-    income = merged[merged["type"].str.lower() == "revenue"]
-    cogs = merged[merged["type"].str.lower() == "cogs"]
-    expense = merged[merged["type"].str.lower() == "expense"]
 
-    revenue_amt = income["credit"].sum()
-    cogs_amt = cogs["debit"].sum()
-    expense_amt = expense["debit"].sum()
-    gross_profit = revenue_amt - cogs_amt
-    net_income = gross_profit - expense_amt
+    try:
+        # Ensure account codes are strings for merge
+        df_journal["account_code"] = df_journal["account_code"].astype(str)
+        df_acc["code"] = df_acc["code"].astype(str)
 
-    st.metric("Revenue", f"{revenue_amt:,.2f}")
-    st.metric("Cost of Goods Sold", f"{cogs_amt:,.2f}")
-    st.metric("Gross Profit", f"{gross_profit:,.2f}")
-    st.metric("Operating Expenses", f"{expense_amt:,.2f}")
-    st.metric("Net Income", f"{net_income:,.2f}")
+        # Merge journal entries with chart of accounts
+        merged = df_journal.merge(df_acc, how="left", left_on="account_code", right_on="code")
+
+        # Optional: show raw data for debugging
+        with st.expander("🧪 Debug: Show merged data"):
+            st.dataframe(merged)
+            st.write("Unique account types found:", merged["type"].unique())
+
+        # Normalize account types to lowercase
+        merged["type"] = merged["type"].str.lower()
+
+        # Filter by type
+        income = merged[merged["type"] == "revenue"]
+        cogs = merged[merged["type"] == "cogs"]
+        expense = merged[merged["type"] == "expense"]
+
+        # Sum totals
+        revenue_amt = income["credit"].sum()
+        cogs_amt = cogs["debit"].sum()
+        expense_amt = expense["debit"].sum()
+        gross_profit = revenue_amt - cogs_amt
+        net_income = gross_profit - expense_amt
+
+        # Display metrics
+        st.metric("Revenue", f"{revenue_amt:,.2f}")
+        st.metric("Cost of Goods Sold", f"{cogs_amt:,.2f}")
+        st.metric("Gross Profit", f"{gross_profit:,.2f}")
+        st.metric("Operating Expenses", f"{expense_amt:,.2f}")
+        st.metric("Net Income", f"{net_income:,.2f}")
+
+    except Exception as e:
+        st.error("❌ Failed to generate income statement.")
+        st.exception(e)
+
 
 # ========================= 📋 Trial Balance ============================
 elif section == "📋 Trial Balance":

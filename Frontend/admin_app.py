@@ -132,8 +132,18 @@ if section == "📄 Invoices":
             r = requests.post(f"{API_BASE}/invoices?debit_account={debit}&credit_account={credit}", json=payload)
             st.success("Invoice added!" if r.status_code == 200 else "Failed.")
     invoices = requests.get(f"{API_BASE}/invoices").json()
-if isinstance(invoices, dict):
-    invoices = [invoices]
+elif section == "📄 Invoices":
+    try:
+        invoices = requests.get(f"{API_BASE}/invoices").json()
+
+        if isinstance(invoices, dict):
+            invoices = [invoices]
+
+        st.dataframe(pd.DataFrame(invoices))
+
+    except Exception as e:
+        st.error("❌ Failed to load invoices.")
+        st.exception(e)
 
     st.dataframe(pd.DataFrame(invoices))
 

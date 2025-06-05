@@ -437,6 +437,7 @@ elif section == "🧠 AI Journal Assistant":
                 
                 try:
                     parsed = json.loads(suggestion)
+                    st.session_state["gpt_entry"] = parsed
                 except json.JSONDecodeError as e:
                     st.error("❌ GPT response is not valid JSON")
                     st.write("🚫 Error:", e)

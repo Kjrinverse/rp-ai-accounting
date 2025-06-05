@@ -44,16 +44,30 @@ except Exception as e:
 # Load data
 try:
     accounts = requests.get(f"{API_BASE}/accounts").json()
-    st.write("⬇️ Raw backend response (accounts):", accounts)
-
     journals = requests.get(f"{API_BASE}/journals").json()
-    st.write("⬇️ Raw backend response (journals):", journals)
+
+    if isinstance(accounts, dict):
+        accounts = [accounts]  # Ensure it's a list
+
+    df_acc = pd.DataFrame(accounts)
+
+    # Auto-rename fallback for account keys
+    df_acc.rename(columns={
+        "account_code": "code",
+        "account_name": "name",
+        "account_type": "type"
+    }, inplace=True)
+
+    st.write("✅ df_acc columns:", df_acc.columns.tolist())
+    st.write("✅ df_acc preview:", df_acc.head())
+
 except Exception as e:
-    st.error("❌ Failed to connect to backend.")
+    st.error("❌ Failed to load data from backend.")
     st.exception(e)
     st.stop()
 
-if isinstance(accounts, dict):
+
+    if isinstance(accounts, dict):
     accounts = [accounts]
 
 st.write("✅ df_acc columns:", df_acc.columns.tolist())

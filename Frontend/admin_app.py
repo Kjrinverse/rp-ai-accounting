@@ -407,28 +407,28 @@ elif section == "🧠 AI Journal Assistant":
                 response = client.chat.completions.create(
                     model="gpt-4",
                     messages=[
-                        {"role": "system", "content":"You are a professional accountant.
+                        {"role": "system", "content": f""You are a professional accountant. Below is the Chart of Accounts in this accounting system:
 
-Below is the Chart of Accounts in this accounting system:
+                        {coa_preview}
 
-{coa_preview}
-
-When generating a journal entry:
-- ONLY use account codes listed above (e.g., 1000, 4000, 6000)
-- Match codes to descriptions and types
-- Always respond with this exact JSON structure:
-{
-  "date": "YYYY-MM-DD",
-  "description": "string",
-  "debit_account_code": "account_code (e.g., 5000)",
-  "credit_account_code": "account_code (e.g., 1000)",
-  "amount": float,
-  "reference": "AI-GPT"
-},
+                When generating a journal entry:
+                - ONLY use account codes listed above (e.g., 1000, 4000, 6000)
+                - Match codes to descriptions and types
+                - Always respond with this exact JSON structure:
+                {{
+                  "date": "YYYY-MM-DD",
+                  "description": "string",
+                  "debit_account_code": "account_code (e.g., 5000)",
+                  "credit_account_code": "account_code (e.g., 1000)",
+                  "amount": float,
+                  "reference": "AI-GPT"
+                    }}
+                    """
+                        },
                         {"role": "user", "content": prompt}
-                    ],
+                        ],
                     temperature=0.3
-                )
+                        )
                 suggestion = response.choices[0].message.content.strip("` \n")
                 
 

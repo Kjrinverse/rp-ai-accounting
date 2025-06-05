@@ -417,6 +417,7 @@ if "gpt_entry" not in st.session_state:
 
                 st.subheader("📑 GPT Suggested Entry")
                 st.json(parsed)
+                st.code(suggestion, language="json")    
 
                 if st.button("✅ Post Suggested Entry"):
                     journals = [

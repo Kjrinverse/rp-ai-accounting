@@ -274,7 +274,7 @@ elif section == "📝 Manual Journal Test":
             ]
             for j in journals:
                 st.write("📤 Posting payload:", j)
-                r = requests.post(f"{API_BASE}/journals", json=j)
+                r = requests.post(f"{API_BASE}/journals", json=[j])
                 st.write("🔍 POST response:", r.status_code, r.text)
             st.success("✅ Manual journal entry posted.")
 
@@ -378,7 +378,7 @@ elif section == "📘 Manual Journal Entry":
                 ]
                 success = True
                 for j in journals:
-                    r = requests.post(f"{API_BASE}/journals", json=j)
+                    r = requests.post(f"{API_BASE}/journals", json=[j])
                     if r.status_code != 200:
                         success = False
                         st.error(f"❌ Failed to post journal: {r.text}")
@@ -474,7 +474,7 @@ with JSON like:
                 ]
                 for j in journals:
                     st.write("📤 Posting payload:", j)
-                    r = requests.post(f"{API_BASE}/journals", json=j)
+                    r = requests.post(f"{API_BASE}/journals", json=[j])
                     st.write("🔍 POST response:", r.status_code, r.text)
                 st.success("✅ GPT journal entry posted.")
 
@@ -519,6 +519,6 @@ with JSON like:
             ]
             for j in journals:
                 st.write("📤 Posting payload:", j)
-                r = requests.post(f"{API_BASE}/journals", json=j)
+                r = requests.post(f"{API_BASE}/journals", json=[j])
                 st.write("🔍 POST response:", r.status_code, r.text)
             st.success("✅ Manual journal entry posted.")

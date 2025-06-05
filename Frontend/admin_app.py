@@ -135,7 +135,7 @@ if section == "📄 Invoices":
 if isinstance(invoices, dict):
     invoices = [invoices]
 
-st.dataframe(pd.DataFrame(invoices))
+    st.dataframe(pd.DataFrame(invoices))
 
 # ========================= 💸 EXPENSES ============================
 elif section == "💸 Expenses":

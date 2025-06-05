@@ -407,7 +407,7 @@ elif section == "🧠 AI Journal Assistant":
                 response = client.chat.completions.create(
                     model="gpt-4",
                     messages=[
-                        {"role": "system", "content": f""You are a professional accountant. Below is the Chart of Accounts in this accounting system:
+                        {"role": "system", "content": f"""You are a professional accountant. Below is the Chart of Accounts in this accounting system:
 
                         {coa_preview}
 
@@ -431,14 +431,13 @@ elif section == "🧠 AI Journal Assistant":
                         )
                 suggestion = response.choices[0].message.content.strip("` \n")
                 
-
-                parsed = json.loads(suggestion)
                 try:
+                    parsed = json.loads(suggestion)
                     st.session_state["gpt_entry"] = parsed
                 except json.JSONDecodeError as e:
                     st.error("❌ GPT response is not valid JSON")
                     st.write("🚫 Error:", e)
-
+                    st.code(suggestion, language="json")
                     st.stop()
                 
                 st.subheader("📑 GPT Suggested Entry")

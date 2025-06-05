@@ -1,0 +1,479 @@
+import streamlit as st
+import pandas as pd
+import requests
+import openai
+import plotly.express as px
+
+# --- SIMPLE PASSWORD LOGIN ---
+PASSWORD = "letmein123"
+
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+if not st.session_state.logged_in:
+    st.title("🔐 Login Required")
+    pw = st.text_input("Enter Password", type="password")
+    if pw == PASSWORD:
+        st.session_state.logged_in = True
+        st.success("✅ Logged in successfully!")
+        st.rerun()
+    else:
+        st.stop()
+
+
+st.set_page_config(page_title="RP AI Accounting Module", layout="wide")
+st.title("📊 RP AI Accounting Module")
+
+API_BASE = "http://127.0.0.1:8000"
+openai.api_key = "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"  # Replace with your actual key
+
+section = st.sidebar.radio("Navigation", [
+    "🧠 AI Journal Assistant","📄 Invoices", "💸 Expenses", "📒 Chart of Accounts",
+    "📈 Income Statement", "📋 Trial Balance", "📊 Balance Sheet",
+    "📘 General Ledger", "📘 Manual Journal Entry", "📉 Net Income Trend", "🧠 AI Insight Generator"
+])
+
+# Load data
+try:
+    accounts = requests.get(f"{API_BASE}/accounts").json()
+    journals = requests.get(f"{API_BASE}/journals").json()
+except:
+    st.error("❌ Failed to connect to backend.")
+    st.stop()
+
+df_acc = pd.DataFrame(accounts)
+df_acc["label"] = df_acc["code"] + " - " + df_acc["name"]
+if journals:
+    df_journal = pd.DataFrame(journals)
+else:
+    df_journal = pd.DataFrame(columns=["date", "account_code", "description", "debit", "credit", "reference"])
+
+# Safe date handling
+if "date" in df_journal.columns:
+    df_journal["date"] = pd.to_datetime(df_journal["date"], errors="coerce")
+else:
+    st.warning("⚠ 'date' missing. Defaulting to empty.")
+    df_journal["date"] = pd.to_datetime([])
+
+# Safe min/max date
+if df_journal["date"].dropna().empty:
+    min_date = pd.to_datetime("2023-01-01")
+    max_date = pd.to_datetime("2023-12-31")
+else:
+    min_date = df_journal["date"].min()
+    max_date = df_journal["date"].max()
+
+start_date = st.sidebar.date_input("Start Date", min_date)
+end_date = st.sidebar.date_input("End Date", max_date)
+
+# Merge safety
+if "account_code" in df_journal.columns:
+    merged = pd.merge(df_journal, df_acc, left_on="account_code", right_on="code", how="left")
+else:
+    st.warning("⚠ 'account_code' missing — merge skipped.")
+    merged = pd.DataFrame()
+
+# This is just the shell. Let me know if you want me to inject all the actual tab logic again.
+st.info("✅ Tabs and logic will be injected here in next step.")
+
+
+
+# ========================= 📄 INVOICES ============================
+if section == "📄 Invoices":
+    st.header("📄 Invoices")
+    ar = df_acc[df_acc["type"] == "asset"].set_index("code")["label"].to_dict()
+    rev = df_acc[df_acc["type"] == "revenue"].set_index("code")["label"].to_dict()
+    with st.form("add_invoice"):
+        date = st.date_input("Date")
+        inv_num = st.text_input("Invoice Number")
+        customer = st.text_input("Customer")
+        amount = st.number_input("Amount", value=0.0)
+        col1, col2 = st.columns(2)
+        debit = col1.selectbox("Debit (A/R)", list(ar), format_func=lambda x: ar[x])
+        credit = col2.selectbox("Credit (Revenue)", list(rev), format_func=lambda x: rev[x])
+        if st.form_submit_button("Add Invoice"):
+            payload = {"date": str(date), "invoice_number": inv_num, "customer": customer, "amount": amount}
+            r = requests.post(f"{API_BASE}/invoices?debit_account={debit}&credit_account={credit}", json=payload)
+            st.success("Invoice added!" if r.status_code == 200 else "Failed.")
+    st.dataframe(pd.DataFrame(requests.get(f"{API_BASE}/invoices").json()))
+
+# ========================= 💸 EXPENSES ============================
+elif section == "💸 Expenses":
+    st.header("💸 Expenses")
+    exp = df_acc[df_acc["type"] == "expense"].set_index("code")["label"].to_dict()
+    cash = df_acc[df_acc["type"] == "asset"].set_index("code")["label"].to_dict()
+    with st.form("add_expense"):
+        date = st.date_input(" key='exp_date'")
+        desc = st.text_input("Description")
+        amt = st.number_input("Amount", value=0.0)
+        col1, col2 = st.columns(2)
+        debit = col1.selectbox("Debit (Expense)", list(exp), format_func=lambda x: exp[x])
+        credit = col2.selectbox("Credit (Cash)", list(cash), format_func=lambda x: cash[x])
+        if st.form_submit_button("Add Expense"):
+            payload = {"date": str(date), "description": desc, "amount": amt}
+            r = requests.post(f"{API_BASE}/expenses?debit_account={debit}&credit_account={credit}", json=payload)
+            st.success("Expense added!" if r.status_code == 200 else "Failed.")
+    st.dataframe(pd.DataFrame(requests.get(f"{API_BASE}/expenses").json()))
+
+# ========================= 📒 COA ============================
+elif section == "📒 Chart of Accounts":
+    st.header("📒 Chart of Accounts")
+    action = st.radio("Action", ["Add", "Edit", "Delete"])
+    if action == "Add":
+        with st.form("add_account"):
+            code = st.text_input("Code")
+            name = st.text_input("Name")
+            typ = st.selectbox("Type", ["asset", "liability", "equity", "revenue", "expense", "cogs"])
+            if st.form_submit_button("Submit"):
+                r = requests.post(f"{API_BASE}/accounts", json={"code": code, "name": name, "type": typ})
+                st.success("Added!" if r.status_code == 200 else "Failed.")
+    elif action == "Edit":
+        if not df_acc.empty:
+            selected = st.selectbox("Select Account", df_acc["id"], format_func=lambda x: df_acc[df_acc["id"] == x]["label"].values[0])
+            acc = df_acc[df_acc["id"] == selected].iloc[0]
+            with st.form("edit_account"):
+                new_code = st.text_input("Code", value=acc["code"])
+                new_name = st.text_input("Name", value=acc["name"])
+                new_type = st.selectbox("Type", ["asset", "liability", "equity", "revenue", "expense"], index=["asset", "liability", "equity", "revenue", "expense"].index(acc["type"]))
+                if st.form_submit_button("Update"):
+                    r = requests.put(f"{API_BASE}/accounts/{selected}", json={"code": new_code, "name": new_name, "type": new_type})
+                    st.success("Updated!" if r.status_code == 200 else "Failed.")
+    elif action == "Delete":
+        selected = st.selectbox("Delete Account", df_acc["id"], format_func=lambda x: df_acc[df_acc["id"] == x]["label"].values[0])
+        if st.button("Delete"):
+            r = requests.delete(f"{API_BASE}/accounts/{selected}")
+            st.success("Deleted!" if r.status_code == 200 else "Failed.")
+    st.dataframe(df_acc)
+
+# ========================= 📈 Income Statement ============================
+elif section == "📈 Income Statement":
+    st.header("📈 Income Statement")
+    income = merged[merged["type"] == "revenue"]
+    cogs = merged[merged["type"] == "cogs"]
+    expense = merged[merged["type"] == "expense"]
+
+    revenue_amt = income["credit"].sum()
+    cogs_amt = cogs["debit"].sum()
+    expense_amt = expense["debit"].sum()
+    gross_profit = revenue_amt - cogs_amt
+    net_income = gross_profit - expense_amt
+
+    st.metric("Revenue", f"{revenue_amt:,.2f}")
+    st.metric("Cost of Goods Sold", f"{cogs_amt:,.2f}")
+    st.metric("Gross Profit", f"{gross_profit:,.2f}")
+    st.metric("Operating Expenses", f"{expense_amt:,.2f}")
+    st.metric("Net Income", f"{net_income:,.2f}")
+
+# ========================= 📋 Trial Balance ============================
+elif section == "📋 Trial Balance":
+    st.header("📋 Trial Balance")
+    tb = merged.groupby(["code", "name", "type"]).agg({"debit": "sum", "credit": "sum"}).reset_index()
+    st.dataframe(tb)
+
+# ========================= 📊 Balance Sheet ============================
+elif section == "📊 Balance Sheet":
+    st.header("📊 Balance Sheet")
+    bs = merged.groupby(["code", "name", "type"]).agg({"debit": "sum", "credit": "sum"}).reset_index()
+    bs["balance"] = bs["debit"] - bs["credit"]
+    for t in ["asset", "liability", "equity"]:
+        st.subheader(t.capitalize())
+        st.dataframe(bs[bs["type"] == t][["code", "name", "balance"]])
+
+# ========================= 📘 General Ledger ============================
+elif section == "📘 General Ledger":
+    st.header("📘 General Ledger")
+    for acct in df_acc["code"]:
+        gl = merged[merged["account_code"] == acct]
+        if not gl.empty:
+            st.subheader(f"{acct} - {gl['name'].iloc[0]}")
+            st.dataframe(gl[["date", "description", "debit", "credit", "reference"]])
+
+# ========================= 📉 Net Income Trend ============================
+elif section == "📝 Manual Journal Test":
+    st.header("📝 Manual Journal Entry Test Section")
+
+    df_acc["code"] = df_acc["code"].astype(str)
+    df_acc["label"] = df_acc["code"] + " - " + df_acc["name"]
+    label_list = df_acc["label"].tolist()
+
+    with st.form("manual_test_form"):
+        date = st.date_input("Date")
+        description = st.text_input("Description")
+        amount = st.number_input("Amount", value=0.0, step=0.01)
+
+        debit_label = st.selectbox("Debit Account", label_list)
+        credit_label = st.selectbox("Credit Account", label_list)
+
+        debit_account = df_acc[df_acc["label"] == debit_label]["code"].values[0]
+        credit_account = df_acc[df_acc["label"] == credit_label]["code"].values[0]
+
+        submit = st.form_submit_button("✅ Post Manual Entry")
+        if submit:
+            journals = [
+                {
+                    "date": str(date),
+                    "account_code": debit_account,
+                    "description": description,
+                    "debit": amount,
+                    "credit": 0,
+                    "reference": "AI-MANUAL"
+                },
+                {
+                    "date": str(date),
+                    "account_code": credit_account,
+                    "description": description,
+                    "debit": 0,
+                    "credit": amount,
+                    "reference": "AI-MANUAL"
+                }
+            ]
+            for j in journals:
+                st.write("📤 Posting payload:", j)
+                r = requests.post(f"{API_BASE}/journals", json=j)
+                st.write("🔍 POST response:", r.status_code, r.text)
+            st.success("✅ Manual journal entry posted.")
+
+elif section == "📉 Net Income Trend":
+    st.header("📉 Net Income Trend")
+    trend = merged.copy()
+    trend["month"] = trend["date"].dt.to_period("M").astype(str)
+    revenue = trend[trend["type"] == "revenue"].groupby("month")["credit"].sum()
+    expense = trend[trend["type"] == "expense"].groupby("month")["debit"].sum()
+    net = revenue.subtract(expense, fill_value=0).reset_index()
+    net.columns = ["Month", "Net Income"]
+    fig = px.line(net, x="Month", y="Net Income", title="Monthly Net Income")
+    st.plotly_chart(fig)
+
+# ========================= 🧠 AI Insight Tab ============================
+elif section == "🧠 AI Insight Generator":
+    st.header("🧠 AI Insight")
+    source = st.radio("Data Source", ["📂 Upload File", "📊 Internal Report"])
+    memo_type = st.selectbox("Memo Type", ["Revenue Recognition", "Audit Summary", "Custom Prompt"])
+    memo_input = ""
+    if source == "📂 Upload File":
+        uploaded_file = st.file_uploader("Upload File", type=["csv", "xlsx", "pdf"])
+        if uploaded_file:
+            if uploaded_file.name.endswith(".csv"):
+                df = pd.read_csv(uploaded_file)
+                memo_input = df.head(20).to_csv(index=False)
+            elif uploaded_file.name.endswith(".xlsx"):
+                df = pd.read_excel(uploaded_file)
+                memo_input = df.head(20).to_csv(index=False)
+            elif uploaded_file.name.endswith(".pdf"):
+                with pdfplumber.open(io.BytesIO(uploaded_file.read())) as pdf:
+                    text = "\n".join(p.extract_text() for p in pdf.pages if p.extract_text())
+                memo_input = text
+            st.text_area("Input Data", memo_input, height=200)
+    else:
+        report = st.selectbox("Select Report", ["Income Statement", "Trial Balance", "Balance Sheet", "General Ledger"])
+        report_map = {
+            "Income Statement": merged[merged["type"].isin(["revenue", "expense"])],
+            "Trial Balance": merged,
+            "Balance Sheet": merged[merged["type"].isin(["asset", "liability", "equity"])],
+            "General Ledger": merged
+        }
+        df = report_map[report]
+        memo_input = df.to_csv(index=False)
+    if memo_type == "Custom Prompt":
+        prompt = st.text_area("Custom Prompt", height=150)
+        full_prompt = f"{prompt}\n\n{memo_input}"
+    elif memo_type == "Revenue Recognition":
+        full_prompt = f"Generate a GAAP-compliant revenue recognition memo:\n{memo_input}"
+    else:
+        full_prompt = f"Summarize audit insights from this data:\n{memo_input}"
+    if st.button("💡 Generate AI Memo"):
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a financial analyst."},
+                {"role": "user", "content": full_prompt}
+            ]
+        )
+        st.markdown("### 📄 AI Insight")
+        st.markdown(response.choices[0].message.content)
+
+
+
+# ========================= 📘 Manual Journal Entry ============================
+elif section == "📘 Manual Journal Entry":
+    st.header("📘 Manual Journal Entry")
+    with st.form("manual_journal_form"):
+        date = st.date_input("Date")
+        description = st.text_input("Description")
+        amount = st.number_input("Amount", value=0.0, step=0.01)
+
+        debit_account = st.selectbox("Debit Account", df_acc["code"], format_func=lambda x: df_acc[df_acc["code"] == x]["label"].values[0])
+        credit_account = st.selectbox("Credit Account", df_acc["code"], index=1, format_func=lambda x: df_acc[df_acc["code"] == x]["label"].values[0])
+
+        submitted = st.form_submit_button("Submit Journal Entry")
+        if submitted:
+            if debit_account == credit_account:
+                st.error("⚠ Debit and credit accounts must be different.")
+            elif amount <= 0:
+                st.error("⚠ Amount must be greater than 0.")
+            else:
+                # Create journal entries
+                journals = [
+                    {
+                        "date": str(date),
+                        "account_code": debit_account,
+                        "description": description,
+                        "debit": amount,
+                        "credit": 0,
+                        "reference": "Manual"
+                    },
+                    {
+                        "date": str(date),
+                        "account_code": credit_account,
+                        "description": description,
+                        "debit": 0,
+                        "credit": amount,
+                        "reference": "Manual"
+                    }
+                ]
+                success = True
+                for j in journals:
+                    r = requests.post(f"{API_BASE}/journals", json=j)
+                    if r.status_code != 200:
+                        success = False
+                        st.error(f"❌ Failed to post journal: {r.text}")
+                if success:
+                    st.success("✅ Journal entry posted.")
+
+
+
+# ========================= 🧠 AI Journal Assistant ============================
+elif section == "🧠 AI Journal Assistant":
+    st.header("🧠 AI Journal Assistant")
+
+    if "gpt_entry" not in st.session_state:
+        st.session_state.gpt_entry = None
+
+    st.subheader("🧠 Generate Entry Using GPT")
+    prompt = st.text_area("Describe the transaction (e.g., 'Paid $500 for rent')")
+    if st.button("💡 Generate Suggested Journal Entry"):
+        with st.spinner("Thinking..."):
+            coa_preview = df_acc[["code", "name", "type"]].to_string(index=False)
+            system_prompt = f"""You are a professional accountant. Use the following chart of accounts to assign appropriate
+debit and credit accounts:
+
+{coa_preview}
+
+If the user does not mention a date, return: "date": null.
+If the transaction involves direct costs of sales (like raw materials or inventory purchases), use an account of type "cogs".
+
+Respond
+with JSON like:
+{{
+  "date": "YYYY-MM-DD" or null,
+  "description": "Transaction summary",
+  "debit_account_code": "account code",
+  "credit_account_code": "account code",
+  "amount": float
+}}
+"""
+            import json
+            try:
+                response = openai.ChatCompletion.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": f"Transaction: {prompt}"}
+                    ],
+                    temperature=0.3
+                )
+                content = response.choices[0].message.content.strip("`\\n ")
+                parsed = json.loads(content)
+
+                # Handle missing or null date
+                date_str = parsed.get("date")
+                if not date_str or str(date_str).lower() == "null":
+                    parsed["date"] = str(pd.Timestamp.today().date())
+
+                st.session_state.gpt_entry = parsed
+
+            
+            except Exception as e:
+                st.error("⚠ GPT failed")
+                st.text(str(e))
+
+    parsed = st.session_state.gpt_entry
+    if parsed:
+        st.subheader("💡 GPT Suggested Entry")
+        st.markdown(f"📅 **Date**: `{parsed['date']}`")
+        st.markdown(f"📝 **Description**: `{parsed['description']}`")
+        st.markdown(f"💳 **Debit**: `{parsed['debit_account_code']}`")
+        st.markdown(f"💰 **Credit**: `{parsed['credit_account_code']}`")
+        st.markdown(f"💵 **Amount**: `${parsed['amount']:,.2f}`")
+
+        with st.form("post_gpt_entry_form"):
+            submit_gpt = st.form_submit_button("✅ Post Suggested Entry")
+            if submit_gpt:
+                journals = [
+                    {
+                        "date": parsed["date"],
+                        "account_code": str(parsed["debit_account_code"]),
+                        "description": parsed["description"],
+                        "debit": parsed["amount"],
+                        "credit": 0,
+                        "reference": "AI-GPT"
+                    },
+                    {
+                        "date": parsed["date"],
+                        "account_code": str(parsed["credit_account_code"]),
+                        "description": parsed["description"],
+                        "debit": 0,
+                        "credit": parsed["amount"],
+                        "reference": "AI-GPT"
+                    }
+                ]
+                for j in journals:
+                    st.write("📤 Posting payload:", j)
+                    r = requests.post(f"{API_BASE}/journals", json=j)
+                    st.write("🔍 POST response:", r.status_code, r.text)
+                st.success("✅ GPT journal entry posted.")
+
+    st.markdown("---")
+    st.subheader("📝 Manual Journal Entry (Always Available)")
+
+    df_acc["code"] = df_acc["code"].astype(str)
+    df_acc["label"] = df_acc["code"] + " - " + df_acc["name"]
+    label_list = df_acc["label"].tolist()
+
+    with st.form("manual_form_ai_tab"):
+        j_date = st.date_input("Manual Date")
+        j_desc = st.text_input("Manual Description")
+        j_amt = st.number_input("Manual Amount", value=0.0, step=0.01)
+
+        debit_label = st.selectbox("Manual Debit Account", label_list)
+        credit_label = st.selectbox("Manual Credit Account", label_list)
+
+        debit_code = df_acc[df_acc["label"] == debit_label]["code"].values[0]
+        credit_code = df_acc[df_acc["label"] == credit_label]["code"].values[0]
+
+        submit_manual = st.form_submit_button("✅ Post Manual Entry")
+
+        if submit_manual:
+            journals = [
+                {
+                    "date": str(j_date),
+                    "account_code": debit_code,
+                    "description": j_desc,
+                    "debit": j_amt,
+                    "credit": 0,
+                    "reference": "AI-MANUAL"
+                },
+                {
+                    "date": str(j_date),
+                    "account_code": credit_code,
+                    "description": j_desc,
+                    "debit": 0,
+                    "credit": j_amt,
+                    "reference": "AI-MANUAL"
+                }
+            ]
+            for j in journals:
+                st.write("📤 Posting payload:", j)
+                r = requests.post(f"{API_BASE}/journals", json=j)
+                st.write("🔍 POST response:", r.status_code, r.text)
+            st.success("✅ Manual journal entry posted.")

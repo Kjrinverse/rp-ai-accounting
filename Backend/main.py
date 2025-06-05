@@ -1,4 +1,4 @@
-
+import openai
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -7,6 +7,10 @@ import datetime
 
 app = FastAPI()
 
+@app.get("/openai-version")
+def get_version():
+    return {"openai_version": openai.__version__}
+    
 # Enable CORS for frontend (e.g., Streamlit)
 app.add_middleware(
     CORSMiddleware,

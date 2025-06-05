@@ -414,9 +414,21 @@ if "gpt_entry" not in st.session_state:
                 )
                 st.write("🧠 Full GPT Response:", response)
                 suggestion = response.choices[0].message.content.strip("` \n")
+                st.code(suggestion, language="json")
+                
                 st.write("✅ Attempting to parse:", suggestion)
                 parsed = json.loads(suggestion)
+                try:
+                    parsed = json.loads(suggestion)
+                except json.JSONDecodeError as e:
+                    st.error("❌ GPT response is not valid JSON")
+                    st.write("🚫 Error:", e)
+                    st.code(suggestion, language="json")
+                    st.stop()
 
+                st.success("✅ Parsed JSON:")
+                st.json(parsed)
+                
                 st.subheader("📑 GPT Suggested Entry")
                 st.json(parsed)
                 st.code(suggestion, language="json")    

@@ -432,34 +432,34 @@ elif section == "🧠 AI Journal Assistant":
                 st.exception(e)
 
 
-       parsed = st.session_state.get("gpt_entry")
+        parsed = st.session_state.get("gpt_entry")
         if parsed:
             with st.form("post_gpt_entry_form"):
-            submit_gpt = st.form_submit_button("✅ Post Suggested Entry")
-            if submit_gpt:
-                journals = [
-                {
-                    "date": parsed["date"],
-                    "account_code": str(parsed["debit_account_code"]),
-                    "description": parsed["description"],
-                    "debit": parsed["amount"],
-                    "credit": 0,
-                    "reference": parsed["reference"]
-                },
-                {
-                    "date": parsed["date"],
-                    "account_code": str(parsed["credit_account_code"]),
-                    "description": parsed["description"],
-                    "debit": 0,
-                    "credit": parsed["amount"],
-                    "reference": parsed["reference"]
-                }
-            ]
-            for j in journals:
-                r = requests.post(f"{API_BASE}/journals", json=[j])
-                st.write("📤 POST:", j)
-                st.write("🔍 Response:", r.status_code, r.text)
-            st.success("✅ GPT journal entry posted.")
+                submit_gpt = st.form_submit_button("✅ Post Suggested Entry")
+                if submit_gpt:
+                    journals = [
+                    {    
+                        "date": parsed["date"],
+                        "account_code": str(parsed["debit_account_code"]),
+                        "description": parsed["description"],
+                        "debit": parsed["amount"],
+                        "credit": 0,
+                        "reference": parsed["reference"]
+                    },
+                    {
+                        "date": parsed["date"],
+                        "account_code": str(parsed["credit_account_code"]),
+                        "description": parsed["description"],
+                        "debit": 0,
+                        "credit": parsed["amount"],
+                        "reference": parsed["reference"]
+                    }
+                ]
+                for j in journals:
+                    r = requests.post(f"{API_BASE}/journals", json=[j])
+                    st.write("📤 POST:", j)
+                    st.write("🔍 Response:", r.status_code, r.text)
+                st.success("✅ GPT journal entry posted.")
 
 
     st.markdown("---")

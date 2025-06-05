@@ -482,8 +482,8 @@ elif section == "🧠 AI Journal Assistant":
                     st.write("📤 POST:", j)
                     st.write("🔍 Response:", r.status_code, r.text)
 
-            st.success("✅ GPT journal entry posted.")
-            st.session_state["gpt_entry"] = None  # ✅ Prevent auto re-posting
+                st.success("✅ GPT journal entry posted.")
+                st.session_state["gpt_entry"] = None  # ✅ Prevent auto re-posting
 
 
 

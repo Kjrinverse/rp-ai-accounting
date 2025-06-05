@@ -388,73 +388,62 @@ elif section == "📘 Manual Journal Entry":
 
 
 # ========================= 🧠 AI Journal Assistant ============================
-from openai import OpenAI
-
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-
-response = client.chat.completions.create(
-    model="gpt-4",
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Say hi"}
-    ]
-)
-
-st.write("✅ GPT response:", response.choices[0].message.content)
-
 elif section == "🧠 AI Journal Assistant":
     st.header("🧠 AI Journal Assistant")
 
-    if "gpt_entry" not in st.session_state:
-        st.session_state.gpt_entry = None
+    from openai import OpenAI
+    import json
 
-    st.subheader("🧠 Generate Entry Using GPT")
-    prompt = st.text_area("Describe the transaction (e.g., 'Paid $500 for rent')")
-    if st.button("💡 Generate Suggested Journal Entry"):
-        with st.spinner("Thinking..."):
-            coa_preview = df_acc[["code", "name", "type"]].to_string(index=False)
-            system_prompt = f"""You are a professional accountant. Use the following chart of accounts to assign appropriate
-debit and credit accounts:
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-{coa_preview}
+    prompt = st.text_area("📝 Describe the transaction (e.g., 'Paid $500 for office rent in June')")
 
-If the user does not mention a date, return: "date": null.
-If the transaction involves direct costs of sales (like raw materials or inventory purchases), use an account of type "cogs".
-
-Respond
-with JSON like:
-{{
-  "date": "YYYY-MM-DD" or null,
-  "description": "Transaction summary",
-  "debit_account_code": "account code",
-  "credit_account_code": "account code",
-  "amount": float
-}}
-"""
-            import json
+    if st.button("💡 Generate Journal Entry"):
+        with st.spinner("Asking GPT..."):
             try:
-                response = openai.ChatCompletion.create(
+                response = client.chat.completions.create(
                     model="gpt-4",
                     messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": f"Transaction: {prompt}"}
+                        {"role": "system", "content": "You are a professional accountant. Given a transaction description, generate a JSON journal entry like this:\n{\n  \"date\": \"YYYY-MM-DD\",\n  \"description\": \"string\",\n  \"debit_account_code\": \"string\",\n  \"credit_account_code\": \"string\",\n  \"amount\": float,\n  \"reference\": \"AI-GPT\"\n}"},
+                        {"role": "user", "content": prompt}
                     ],
                     temperature=0.3
                 )
-                content = response.choices[0].message.content.strip("`\\n ")
-                parsed = json.loads(content)
+                suggestion = response.choices[0].message.content.strip("` \n")
+                parsed = json.loads(suggestion)
 
-                # Handle missing or null date
-                date_str = parsed.get("date")
-                if not date_str or str(date_str).lower() == "null":
-                    parsed["date"] = str(pd.Timestamp.today().date())
+                st.subheader("📑 GPT Suggested Entry")
+                st.json(parsed)
 
-                st.session_state.gpt_entry = parsed
+                if st.button("✅ Post Suggested Entry"):
+                    journals = [
+                        {
+                            "date": parsed["date"],
+                            "account_code": parsed["debit_account_code"],
+                            "description": parsed["description"],
+                            "debit": parsed["amount"],
+                            "credit": 0,
+                            "reference": parsed["reference"]
+                        },
+                        {
+                            "date": parsed["date"],
+                            "account_code": parsed["credit_account_code"],
+                            "description": parsed["description"],
+                            "debit": 0,
+                            "credit": parsed["amount"],
+                            "reference": parsed["reference"]
+                        }
+                    ]
+                    for j in journals:
+                        r = requests.post(f"{API_BASE}/journals", json=[j])
+                        st.write("📤 POST:", j)
+                        st.write("🔍 Response:", r.status_code, r.text)
+                    st.success("✅ Entry posted to General Ledger")
 
-            
             except Exception as e:
-                st.error("⚠ GPT failed")
-                st.text(str(e))
+                st.error("❌ GPT failed")
+                st.exception(e)
+
 
     parsed = st.session_state.gpt_entry
     if parsed:

@@ -201,7 +201,11 @@ elif section == "📈 Income Statement":
 
         # Merge journal entries with chart of accounts
         merged = df_journal.merge(df_acc, how="left", left_on="account_code", right_on="code")
-
+        
+        # ✅ Add these diagnostics
+        st.write("🔍 Unique types in merged['type']:", merged["type"].dropna().unique())
+        st.write("📄 Rows where account_code = '4000':", merged[merged["account_code"] == "4000"])
+        
         # Optional: show raw data for debugging
         with st.expander("🧪 Debug: Show merged data"):
             st.dataframe(merged)

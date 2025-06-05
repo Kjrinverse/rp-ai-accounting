@@ -28,6 +28,18 @@ def ping():
 
 # ========== Journal POST Route ==========
 
+# Sample account data (for GET /accounts)
+accounts = [
+    {"code": "1000", "name": "Cash", "type": "asset"},
+    {"code": "2000", "name": "Accounts Payable", "type": "liability"},
+    {"code": "3000", "name": "Equity", "type": "equity"},
+    {"code": "4000", "name": "Revenue", "type": "revenue"},
+    {"code": "5000", "name": "Operating Expense", "type": "expense"},
+    {"code": "6000", "name": "Cost of Goods Sold", "type": "cogs"},
+]
+
+journal_store = []
+
 class JournalEntry(BaseModel):
     date: datetime.date
     account_code: str
@@ -36,7 +48,15 @@ class JournalEntry(BaseModel):
     credit: float
     reference: str
 
+@app.get("/accounts")
+def get_accounts():
+    return accounts
+
+@app.get("/journals")
+def get_journals():
+    return journal_store
+
 @app.post("/journals")
 def post_journals(entries: List[JournalEntry]):
-    # In real use, you'd save this to a DB or file here
+    journal_store.extend([e.dict() for e in entries])
     return {"status": "success", "received": len(entries), "entries": entries}

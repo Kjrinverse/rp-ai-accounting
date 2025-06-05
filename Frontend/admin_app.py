@@ -33,6 +33,14 @@ section = st.sidebar.radio("Navigation", [
     "📘 General Ledger", "📘 Manual Journal Entry", "📉 Net Income Trend", "🧠 AI Insight Generator"
 ])
 
+# 🔌 Backend Connection Test
+st.sidebar.markdown("### 🔌 Backend Connection Test")
+try:
+    r = requests.get(f"{API_BASE}/ping")
+    st.sidebar.success(f"✅ Connected: {r.json()}")
+except Exception as e:
+    st.sidebar.error(f"❌ Failed to connect to backend: {e}")
+
 # Load data
 try:
     accounts = requests.get(f"{API_BASE}/accounts").json()

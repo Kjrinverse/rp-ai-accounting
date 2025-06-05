@@ -406,7 +406,7 @@ elif section == "🧠 AI Journal Assistant":
     if st.button("💡 Generate Journal Entry"):
         ...
     
-    if st.button("💡 Generate Journal Entry"):
+    if st.button("💡 Generate Journal Entry", key="generate_gpt"):
         with st.spinner("Asking GPT..."):
             try:
                 response = client.chat.completions.create(

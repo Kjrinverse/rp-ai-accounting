@@ -131,7 +131,11 @@ if section == "📄 Invoices":
             payload = {"date": str(date), "invoice_number": inv_num, "customer": customer, "amount": amount}
             r = requests.post(f"{API_BASE}/invoices?debit_account={debit}&credit_account={credit}", json=payload)
             st.success("Invoice added!" if r.status_code == 200 else "Failed.")
-    st.dataframe(pd.DataFrame(requests.get(f"{API_BASE}/invoices").json()))
+    invoices = requests.get(f"{API_BASE}/invoices").json()
+if isinstance(invoices, dict):
+    invoices = [invoices]
+
+st.dataframe(pd.DataFrame(invoices))
 
 # ========================= 💸 EXPENSES ============================
 elif section == "💸 Expenses":

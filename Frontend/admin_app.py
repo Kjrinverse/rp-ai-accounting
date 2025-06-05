@@ -191,48 +191,37 @@ elif section == "📒 Chart of Accounts":
     st.dataframe(df_acc)
 
 # ========================= 📈 Income Statement ============================
-elif section == "📈 Income Statement":
+lif section == "📈 Income Statement":
     st.header("📈 Income Statement")
 
-    try:
-        # Ensure account codes are strings for merge
-        df_journal["account_code"] = df_journal["account_code"].astype(str)
-        df_acc["code"] = df_acc["code"].astype(str)
+    # Merge if not done already
+    df_journal["account_code"] = df_journal["account_code"].astype(str)
+    df_acc["code"] = df_acc["code"].astype(str)
+    merged = df_journal.merge(df_acc, how="left", left_on="account_code", right_on="code")
 
-        # Merge journal entries with chart of accounts
-        merged = df_journal.merge(df_acc, how="left", left_on="account_code", right_on="code")
-       
-              
-        # Optional: show raw data for debugging
-        with st.expander("🧪 Debug: Show merged data"):
-            st.dataframe(merged)
-            st.write("Unique account types found:", merged["type"].unique())
+    # Define codes
+    revenue_codes = ["4000"]
+    cogs_codes = ["6000"]
+    expense_codes = ["5000", "5100", "5200"]
 
-        # Normalize account types to lowercase
-        merged["type"] = merged["type"].str.lower()
+    # Filter by code
+    income = merged[merged["account_code"].isin(revenue_codes)]
+    cogs = merged[merged["account_code"].isin(cogs_codes)]
+    expense = merged[merged["account_code"].isin(expense_codes)]
 
-        # Filter by type
-        income = merged[merged["type"] == "revenue"]
-        cogs = merged[merged["type"] == "cogs"]
-        expense = merged[merged["type"] == "expense"]
+    # Net amounts
+    revenue_amt = income["credit"].sum() - income["debit"].sum()
+    cogs_amt = cogs["debit"].sum() - cogs["credit"].sum()
+    expense_amt = expense["debit"].sum() - expense["credit"].sum()
+    gross_profit = revenue_amt - cogs_amt
+    net_income = gross_profit - expense_amt
 
-        # Sum totals
-        revenue_amt = income["credit"].sum()
-        cogs_amt = cogs["debit"].sum()
-        expense_amt = expense["debit"].sum()
-        gross_profit = revenue_amt - cogs_amt
-        net_income = gross_profit - expense_amt
-
-        # Display metrics
-        st.metric("Revenue", f"{revenue_amt:,.2f}")
-        st.metric("Cost of Goods Sold", f"{cogs_amt:,.2f}")
-        st.metric("Gross Profit", f"{gross_profit:,.2f}")
-        st.metric("Operating Expenses", f"{expense_amt:,.2f}")
-        st.metric("Net Income", f"{net_income:,.2f}")
-
-    except Exception as e:
-        st.error("❌ Failed to generate income statement.")
-        st.exception(e)
+    # Display metrics
+    st.metric("Revenue", f"{revenue_amt:,.2f}")
+    st.metric("Cost of Goods Sold", f"{cogs_amt:,.2f}")
+    st.metric("Gross Profit", f"{gross_profit:,.2f}")
+    st.metric("Operating Expenses", f"{expense_amt:,.2f}")
+    st.metric("Net Income", f"{net_income:,.2f}")
 
 
 # ========================= 📋 Trial Balance ============================

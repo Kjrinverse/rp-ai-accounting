@@ -158,7 +158,7 @@ elif section == "💸 Expenses":
             payload = {"date": str(date), "description": desc, "amount": amt}
             r = requests.post(f"{API_BASE}/expenses?debit_account={debit}&credit_account={credit}", json=payload)
             st.success("Expense added!" if r.status_code == 200 else "Failed.")
-            expenses = requests.get(f"{API_BASE}/expenses").json()
+        expenses = requests.get(f"{API_BASE}/expenses").json()
         if isinstance(expenses, dict):
             expenses = [expenses]
 

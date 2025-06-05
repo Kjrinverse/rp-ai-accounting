@@ -412,26 +412,21 @@ elif section == "🧠 AI Journal Assistant":
                     ],
                     temperature=0.3
                 )
-                st.write("🧠 Full GPT Response:", response)
                 suggestion = response.choices[0].message.content.strip("` \n")
-                st.code(suggestion, language="json")
                 
-                st.write("✅ Attempting to parse:", suggestion)
+
                 parsed = json.loads(suggestion)
                 try:
                     parsed = json.loads(suggestion)
                 except json.JSONDecodeError as e:
                     st.error("❌ GPT response is not valid JSON")
                     st.write("🚫 Error:", e)
-                    st.code(suggestion, language="json")
-                    st.stop()
 
-                st.success("✅ Parsed JSON:")
-                st.json(parsed)
+                    st.stop()
                 
                 st.subheader("📑 GPT Suggested Entry")
                 st.json(parsed)
-                st.code(suggestion, language="json")    
+   
 
                 if st.button("✅ Post Suggested Entry"):
                     journals = [

@@ -193,7 +193,7 @@ elif section == "📒 Chart of Accounts":
 # ========================= 📈 Income Statement ============================
 elif section == "📈 Income Statement":
     st.header("📈 Income Statement")
-    income = merged[merged["type"] == "revenue"]
+    income = merged[merged["type"].str.lower() == "revenue"]
     cogs = merged[merged["type"] == "cogs"]
     expense = merged[merged["type"] == "expense"]
 

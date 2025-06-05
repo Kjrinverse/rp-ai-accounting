@@ -44,9 +44,13 @@ except Exception as e:
 # Load data
 try:
     accounts = requests.get(f"{API_BASE}/accounts").json()
+    st.write("⬇️ Raw backend response (accounts):", accounts)
+
     journals = requests.get(f"{API_BASE}/journals").json()
-except:
+    st.write("⬇️ Raw backend response (journals):", journals)
+except Exception as e:
     st.error("❌ Failed to connect to backend.")
+    st.exception(e)
     st.stop()
 
 if isinstance(accounts, dict):

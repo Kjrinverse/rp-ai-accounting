@@ -194,8 +194,8 @@ elif section == "📒 Chart of Accounts":
 elif section == "📈 Income Statement":
     st.header("📈 Income Statement")
     income = merged[merged["type"].str.lower() == "revenue"]
-    cogs = merged[merged["type"] == "cogs"]
-    expense = merged[merged["type"] == "expense"]
+    cogs = merged[merged["type"].str.lower() == "cogs"]
+    expense = merged[merged["type"].str.lower() == "expense"]
 
     revenue_amt = income["credit"].sum()
     cogs_amt = cogs["debit"].sum()

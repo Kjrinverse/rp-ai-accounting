@@ -49,6 +49,9 @@ except:
     st.error("❌ Failed to connect to backend.")
     st.stop()
 
+if isinstance(accounts, dict):
+    accounts = [accounts]
+
 df_acc = pd.DataFrame(accounts)
 df_acc["label"] = df_acc["code"] + " - " + df_acc["name"]
 if journals:

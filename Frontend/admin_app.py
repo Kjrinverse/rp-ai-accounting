@@ -472,7 +472,7 @@ elif section == "🧠 AI Journal Assistant":
             st.markdown(f"💰 **Credit**: `{parsed['credit_account_code']}`")
             st.markdown(f"💵 **Amount**: `${parsed['amount']:,.2f}`")
 
-            with st.form("post_gpt_entry_form"):
+        with st.form("post_gpt_entry_form"):
             submit_gpt = st.form_submit_button("✅ Post Suggested Entry")
             if submit_gpt:
                 journals = [

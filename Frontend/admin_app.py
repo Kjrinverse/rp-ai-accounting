@@ -403,8 +403,7 @@ elif section == "🧠 AI Journal Assistant":
 
     coa_preview = df_acc[["code", "name", "type"]].to_string(index=False)
 
-    if st.button("💡 Generate Journal Entry"):
-        ...
+...
     
     if st.button("💡 Generate Journal Entry", key="generate_gpt"):
         with st.spinner("Asking GPT..."):

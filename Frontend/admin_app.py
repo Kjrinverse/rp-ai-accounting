@@ -433,11 +433,11 @@ elif section == "🧠 AI Journal Assistant":
 
 
        parsed = st.session_state.get("gpt_entry")
-if parsed:
-    with st.form("post_gpt_entry_form"):
-        submit_gpt = st.form_submit_button("✅ Post Suggested Entry")
-        if submit_gpt:
-            journals = [
+        if parsed:
+            with st.form("post_gpt_entry_form"):
+            submit_gpt = st.form_submit_button("✅ Post Suggested Entry")
+            if submit_gpt:
+                journals = [
                 {
                     "date": parsed["date"],
                     "account_code": str(parsed["debit_account_code"]),

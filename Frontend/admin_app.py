@@ -24,7 +24,7 @@ if not st.session_state.logged_in:
 st.set_page_config(page_title="RP AI Accounting Module", layout="wide")
 st.title("📊 RP AI Accounting Module")
 
-API_BASE = "http://127.0.0.1:8000"
+API_BASE = "https://rp-ai-accounting.onrender.com"
 openai.api_key = "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"  # Replace with your actual key
 
 section = st.sidebar.radio("Navigation", [

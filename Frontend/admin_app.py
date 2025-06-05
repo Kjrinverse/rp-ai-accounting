@@ -468,14 +468,6 @@ elif section == "🧠 AI Journal Assistant":
                         "credit": 0,
                         "reference": parsed["reference"]
                       },
-                    {
-                        "date": parsed["date"],
-                        "account_code": str(parsed["credit_account_code"]),
-                        "description": parsed["description"],
-                        "debit": 0,
-                        "credit": parsed["amount"],
-                        "reference": parsed["reference"]
-                    }
                 ]
                 for j in journals:
                     r = requests.post(f"{API_BASE}/journals", json=[j])

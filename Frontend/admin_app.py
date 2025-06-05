@@ -388,6 +388,20 @@ elif section == "📘 Manual Journal Entry":
 
 
 # ========================= 🧠 AI Journal Assistant ============================
+from openai import OpenAI
+
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Say hi"}
+    ]
+)
+
+st.write("✅ GPT response:", response.choices[0].message.content)
+
 elif section == "🧠 AI Journal Assistant":
     st.header("🧠 AI Journal Assistant")
 

@@ -464,23 +464,37 @@ elif section == "🧠 AI Journal Assistant":
                 response = client.chat.completions.create(
                     model="gpt-4",
                     messages=[
-                        {"role": "system", "content": f"""You are a professional accountant. Below is the Chart of Accounts in this accounting system:
+                        {"role": "system", "content": f"""YYou are a professional accountant working with a structured Chart of Accounts.
 
-                        {coa_preview}
+Below is the Chart of Accounts used in this accounting system:
 
-                When generating a journal entry:
-                - ONLY use account codes listed above (e.g., 1000, 4000, 6000)
-                - Match codes to descriptions and types
-                - Always respond with this exact JSON structure:
-                {{
-                  "date": "YYYY-MM-DD",
-                  "description": "string",
-                  "debit_account_code": "account_code (e.g., 5000)",
-                  "credit_account_code": "account_code (e.g., 1000)",
-                  "amount": float,
-                  "reference": "AI-GPT"
-                    }}
-                    """
+{coa_preview}
+
+Your task is to convert natural-language transactions into proper double-entry journal entries using only the accounts provided.
+
+### Accounting Guidelines:
+
+- Revenue accounts should appear on the **credit side**
+- Expense and COGS accounts should appear on the **debit side**
+- Asset accounts (like cash, bank) are typically debited when increased
+- Liability accounts (like payables) are typically credited when increased
+- Use valid account codes only from the chart above
+- Always match accounts to their intended use and type
+
+### Output Format:
+
+Return your answer in **raw JSON only**, using this structure:
+{{
+  "date": "YYYY-MM-DD",
+  "description": "string",
+  "debit_account_code": "account_code",
+  "credit_account_code": "account_code",
+  "amount": float,
+  "reference": "AI-GPT"
+}}
+
+Avoid any explanation — return JSON only.
+"""
                         },
                         {"role": "user", "content": prompt}
                         ],

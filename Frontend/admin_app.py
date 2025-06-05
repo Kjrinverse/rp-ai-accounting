@@ -407,7 +407,7 @@ elif section == "🧠 AI Journal Assistant":
                 response = client.chat.completions.create(
                     model="gpt-4",
                     messages=[
-                        {"role": "system", "content": "You are a professional accountant.
+                        {"role": "system", "content":"You are a professional accountant.
 
 Below is the Chart of Accounts in this accounting system:
 
